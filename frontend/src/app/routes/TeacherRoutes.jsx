@@ -1,24 +1,32 @@
 import { Routes, Route } from 'react-router-dom';
 import TeacherLayout from '../layouts/TeacherLayout';
-import TeacherDashboard from '../../pages/teacher/TeacherDashboard';
+import Dashboard from '../../pages/teacher/Dashboard';
+import Subjects from '../../pages/teacher/Subjects';
+import Questions from '../../pages/teacher/Questions';
+import Exams from '../../pages/teacher/Exams';
+import Attendance from '../../pages/teacher/Attendance';
+import Performance from '../../pages/teacher/Performance';
 
 /**
  * TeacherRoutes - Nested routing for Teacher role
  * Handles all routes under /teacher/*
  * 
  * Uses TeacherLayout with Outlet for nested routing structure
- * This structure allows for easy addition of more nested routes in the future
- * Example: /teacher/dashboard, /teacher/exams, /teacher/students, etc.
  */
 function TeacherRoutes() {
   return (
     <Routes>
       <Route element={<TeacherLayout />}>
-        {/* Teacher Dashboard */}
-        <Route path="dashboard" element={<TeacherDashboard />} />
+        {/* Teacher Routes */}
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="subjects" element={<Subjects />} />
+        <Route path="questions" element={<Questions />} />
+        <Route path="exams" element={<Exams />} />
+        <Route path="attendance" element={<Attendance />} />
+        <Route path="performance" element={<Performance />} />
         
-        {/* Default route - shows dashboard when accessing /teacher */}
-        <Route index element={<TeacherDashboard />} />
+        {/* Default route - shows dashboard */}
+        <Route index element={<Dashboard />} />
       </Route>
     </Routes>
   );
