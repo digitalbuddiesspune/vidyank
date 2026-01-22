@@ -1,34 +1,57 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../store/authStore.jsx';
+import api from '../../services/api.js';
 
 /**
  * Parent Login Page
  * URL-based login for Parent role
+ * Integrates with backend JWT authentication
  */
 function ParentLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
     // Basic validation
     if (!email || !password) {
       setError('Please enter both email and password');
+      setLoading(false);
       return;
     }
 
-    // Simulate login - no backend call
-    // Set authentication state
-    login('PARENT', { email });
+    try {
+      // Call backend login API
+      const response = await api.post('/auth/login', {
+        email,
+        password,
+        role: 'PARENT',
+      });
 
-    // Redirect to Parent dashboard
-    navigate('/parent/dashboard');
+      // Extract token and user data from response
+      const { token, user } = response.data.data;
+
+      // Save authentication data
+      login(user, token);
+
+      // Redirect to Parent dashboard
+      navigate('/parent/dashboard');
+    } catch (err) {
+      // Handle error
+      const errorMessage =
+        err.response?.data?.message || 'Login failed. Please try again.';
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -80,9 +103,10 @@ function ParentLogin() {
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            disabled={loading}
+            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:bg-blue-400 disabled:cursor-not-allowed"
           >
-            Login
+            {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
       </div>

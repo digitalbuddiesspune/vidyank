@@ -3,6 +3,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 /**
  * Auth Context
  * Manages authentication state for the application
+ * Handles JWT token and user data persistence
  */
 const AuthContext = createContext(null);
 
@@ -13,43 +14,72 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   // Initialize state from localStorage if available
   const [authState, setAuthState] = useState(() => {
-    const stored = localStorage.getItem('authState');
-    return stored
-      ? JSON.parse(stored)
-      : {
-          isAuthenticated: false,
-          role: null,
-          user: null,
+    const storedAuth = localStorage.getItem('authState');
+    const storedToken = localStorage.getItem('token');
+    
+    if (storedAuth && storedToken) {
+      try {
+        const parsed = JSON.parse(storedAuth);
+        return {
+          isAuthenticated: true,
+          token: storedToken,
+          user: parsed.user,
+          role: parsed.role,
         };
+      } catch (error) {
+        // If parsing fails, clear storage
+        localStorage.removeItem('authState');
+        localStorage.removeItem('token');
+      }
+    }
+    
+    return {
+      isAuthenticated: false,
+      token: null,
+      user: null,
+      role: null,
+    };
   });
-
-  // Sync state to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('authState', JSON.stringify(authState));
-  }, [authState]);
 
   /**
    * Login function
-   * Sets authentication state and role
+   * Saves authentication data to state and localStorage
+   * 
+   * @param {Object} userData - User data from backend response
+   * @param {string} token - JWT token from backend
    */
-  const login = (role, userData = null) => {
-    setAuthState({
+  const login = (userData, token) => {
+    const authData = {
       isAuthenticated: true,
-      role: role,
-      user: userData || { email: 'user@example.com' },
-    });
+      token: token,
+      user: userData,
+      role: userData.role,
+    };
+    
+    setAuthState(authData);
+    
+    // Save to localStorage
+    localStorage.setItem('token', token);
+    localStorage.setItem('authState', JSON.stringify({
+      user: userData,
+      role: userData.role,
+    }));
   };
 
   /**
    * Logout function
-   * Clears authentication state
+   * Clears authentication state and localStorage
    */
   const logout = () => {
     setAuthState({
       isAuthenticated: false,
-      role: null,
+      token: null,
       user: null,
+      role: null,
     });
+    
+    // Clear localStorage
+    localStorage.removeItem('token');
     localStorage.removeItem('authState');
   };
 
